@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <vector>
 using namespace std;
 
@@ -101,9 +102,9 @@ class BinarySearchTree
     /**
      * Returns true if x is found in the tree.
      */
-    bool contains( const Comparable & x, vector<int> & lineno ) const
+    bool contains( const Comparable & x ) const
     {
-        return contains( x, lineno, root );
+        return contains( x, root );
     }
 
     /**
@@ -120,25 +121,10 @@ class BinarySearchTree
      */
     void printTree( ostream & out = cout ) const
     {
-        out << "Binary Search Tree Index:" << endl
-            << "-------------------------" << endl;
-        if (isEmpty())
+        if( isEmpty( ) )
             out << "Empty tree" << endl;
         else
             printTree( root, out );
-        out << endl;
-    }
-
-    void printTree(string fName) const {
-      ofstream outFile(fName);
-      ostream & out = outFile;
-      out << "Binary Search Tree Index:" << endl
-          << "-------------------------" << endl;
-      if (isEmpty())
-          out << "Empty tree" << endl;
-      else
-          printTree( root, out );
-      out << endl;
     }
 
     /**
@@ -152,17 +138,17 @@ class BinarySearchTree
     /**
      * Insert x into the tree; duplicates are ignored.
      */
-    void insert( const Comparable & x, const int & lineno )
+    bool insert( const Comparable & x )
     {
-        insert( x, lineno, root );
+        return insert( x, root );
     }
 
     /**
      * Insert x into the tree; duplicates are ignored.
      */
-    void insert( Comparable && x, int && lineno )
+    void insert( Comparable && x )
     {
-        insert( std::move( x ), lineno, root );
+        insert( std::move( x ), root );
     }
 
     /**
@@ -173,16 +159,16 @@ class BinarySearchTree
         remove( x, root );
     }
 
-    /**
-     * Added by Marty for lab7
-     */
-    int countTreeNodes() const
-    {
-        if (isEmpty()) {
-            return -1;
-        }
-        else
-            return(countTreeNodes(root));
+    int RankOfKey(int & x){
+        return RankOfKey(x, root);
+    }
+
+    // BinaryNode* KeyOfRank(int k){
+    //   return KeyOfRank(k, root);
+    // }
+
+    int getSize(){
+      return size(root);
     }
 
     int Treeheight() {
@@ -193,11 +179,19 @@ class BinarySearchTree
             return(Treeheight(root, 0));
     }
 
+    void inOrderTrav(vector<int> & vectorB){
+      if(isEmpty()){
+        return;
+      }
+      else
+        return inOrderTrav(root, vectorB);
+    }
+
   private:
     struct BinaryNode
     {
         Comparable element;
-        vector<int> lineNumberList;      // Line number where the word exists
+        int size;
         BinaryNode *left;
         BinaryNode *right;
 
@@ -217,18 +211,39 @@ class BinarySearchTree
      * t is the node that roots the subtree.
      * Set the new root of the subtree.
      */
-    void insert( const Comparable & x, int lineno, BinaryNode * & t )
+    bool insert( const Comparable & x, BinaryNode * & t )
     {
-        if (t == nullptr) {
+        if( t == nullptr ){
             t = new BinaryNode{ x, nullptr, nullptr };
-            t->lineNumberList.push_back(lineno);
+            t->size = 1;
+            return true;
         }
-        else if( x < t->element )
-            insert( x, lineno, t->left );
-        else if( t->element < x )
-            insert( x, lineno, t->right );
-        else
-            t->lineNumberList.push_back(lineno);  // Duplicate; add the line number
+        else if( x < t->element ){
+            bool temp = insert(x, t->left);
+            if(temp){
+              t->size = t->size + 1;
+              return true;
+            }
+            else {
+              return false;
+            }
+            if(x == t->element){
+              return false;
+            }
+        }
+        else if( t->element < x ){
+            bool temp = insert(x, t->right);
+            if(temp){
+              t->size = t->size+1;
+              return true;
+            }
+            else{
+              return false;
+            }
+        }
+        else if(x == t->element){
+              return false;  // Duplicate; do nothing
+        }
     }
 
     /**
@@ -237,18 +252,16 @@ class BinarySearchTree
      * t is the node that roots the subtree.
      * Set the new root of the subtree.
      */
-    void insert(Comparable && x, int lineno, BinaryNode * & t)
+    void insert( Comparable && x, BinaryNode * & t )
     {
-        if (t == nullptr) {
-            t = new BinaryNode{ std::move(x), nullptr, nullptr };
-            t->lineNumberList.push_back(lineno);
-        }
+        if( t == nullptr )
+            t = new BinaryNode{ std::move( x ), nullptr, nullptr };
         else if( x < t->element )
-            insert(std::move(x), lineno, t->left);
+            insert( std::move( x ), t->left );
         else if( t->element < x )
-            insert(std::move(x), lineno, t->right);
+            insert( std::move( x ), t->right );
         else
-            t->lineNumberList.push_back(lineno);  // Duplicate; add the line number
+            ;  // Duplicate; do nothing
     }
 
     /**
@@ -309,18 +322,16 @@ class BinarySearchTree
      * x is item to search for.
      * t is the node that roots the subtree.
      */
-    bool contains( const Comparable & x, vector<int> & lineno, BinaryNode *t ) const
+    bool contains( const Comparable & x, BinaryNode *t ) const
     {
         if( t == nullptr )
             return false;
         else if( x < t->element )
-            return contains( x, lineno, t->left );
+            return contains( x, t->left );
         else if( t->element < x )
-            return contains( x, lineno, t->right );
-        else {
-            lineno = t->lineNumberList;
+            return contains( x, t->right );
+        else
             return true;    // Match
-        }
     }
 /****** NONRECURSIVE VERSION*************************
     bool contains( const Comparable & x, BinaryNode *t ) const
@@ -356,35 +367,12 @@ class BinarySearchTree
      */
     void printTree( BinaryNode *t, ostream & out ) const
     {
-        if (t != nullptr)
+        if( t != nullptr )
         {
-            int numbers_printed = 0;
-            printTree(t->left, out);
-            out << left << setw(16) << t->element << " ";
-            for (const auto line : t->lineNumberList) {
-                if (numbers_printed++ % 9 == 0)  // First number
-                    out << line;
-                else if (numbers_printed % 9)
-                    out << ", " << line;
-                else {
-                    out << ", " << line << "," << endl
-                        << left << setw(17) << " ";
-                }
-            }
-            out << endl;
-            printTree(t->right, out);
+            printTree( t->left, out );
+            out << t->element << endl;
+            printTree( t->right, out );
         }
-    }
-
-    /**
-    * Internal method to print a subtree rooted at t in sorted order.
-    */
-    int countTreeNodes(BinaryNode *t) const
-    {
-        if (t == nullptr)
-            return 0;
-        else
-            return(1 + countTreeNodes(t->left) + countTreeNodes(t->right));
     }
 
     /**
@@ -398,9 +386,43 @@ class BinarySearchTree
             return new BinaryNode{ t->element, clone( t->left ), clone( t->right ) };
     }
 
-    /**
-    * Internal method to calculate the height of the tree
-    */
+    int RankOfKey(int & x, BinaryNode* T){
+      if(T == nullptr){
+        return 0;
+      }
+      if(x < T->element){
+        return RankOfKey(x, T->left);
+      }
+      else if(x == T->element){
+        return 1 + size(T->left);
+      }
+      else{
+        return 1 + size(T->left) + RankOfKey(x, T->right);
+      }
+    }
+
+    // BinaryNode* KeyOfRank(int k, BinaryNode* T){
+    //   if(T == NULL || (k < min(T) || k > max(T))){
+    //     return NULL;
+    //   }
+    //   if(size(T-left) == k-1){
+    //     return T;
+    //   }
+    //   if(size(T->left) >= k){
+    //     return KeyOfRank(k, T->left);
+    //   }
+    //   else{
+    //     return KeyOfRank(k - size(T->left) - 1, T-right);
+    //   }
+    // }
+
+    int size(BinaryNode* T){
+      if(T == NULL){
+        return 0;
+      }
+      return T->size;
+    }
+
     int Treeheight(BinaryNode *t, int currentdepth) {
         if (t == nullptr)
             return(currentdepth);
@@ -410,6 +432,15 @@ class BinarySearchTree
 
             return(rheight > lheight ? rheight : lheight);
         }
+    }
+
+    void inOrderTrav(BinaryNode *t, vector<int> & vectorB){
+      if(t == NULL){
+        return;
+      }
+      inOrderTrav(t->left, vectorB);
+      vectorB.push_back(t->element);
+      inOrderTrav(t->right, vectorB);
     }
 };
 
