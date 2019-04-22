@@ -442,6 +442,52 @@ class BinarySearchTree
       vectorB.push_back(t->element);
       inOrderTrav(t->right, vectorB);
     }
+
+    // bool delete(T, x){
+    //   //Delete X from T and return true if successful
+    //   if(T == NULL){
+    //     return false;
+    //   }
+    //   if(x < T->element){
+    //     bool temp = Delete(T->left, x);
+    //     if(temp){
+    //       T->size = T->size - 1;
+    //       return true;
+    //     }
+    //     else
+    //       return false;
+    //   }
+    //   if(x > T->element){
+    //     bool temp = Delete(T->right, x);
+    //     if(temp){
+    //       T->size = T->size - 1;
+    //       return true;
+    //     }
+    //     else
+    //       return false;
+    //   }
+    //   if(x == T->element){
+    //     if(T->left == NULL && T->right == NULL){
+    //       T = NULL;
+    //       return true;
+    //     }
+    //     else if(T->left != nullptr && T->right == nullptr){
+    //       T = T->left;
+    //       return true;
+    //     }
+    //     else if(T->right != nullptr && T->left == nullptr){
+    //       T = T->right;
+    //       return true;
+    //     }
+    //     else if() //Has 2 children
+    //
+    //
+    //
+    //
+    //   }
+    // } // End Delete
+
+
 };
 
 #endif
