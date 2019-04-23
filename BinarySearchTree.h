@@ -29,6 +29,32 @@ template <typename Comparable>
 class BinarySearchTree
 {
   public:
+    // struct BinaryNode
+    // {
+    //     Comparable element;
+    //     int size;
+    //     BinaryNode *left;
+    //     BinaryNode *right;
+    //
+    //     BinaryNode(){
+    //       element = 0;
+    //       size = 0;
+    //       left = nullptr;
+    //       right = nullptr;
+    //
+    //     }
+    //
+    //     BinaryNode( const Comparable & theElement, BinaryNode *lt, BinaryNode *rt )
+    //       : element{ theElement }, left{ lt }, right{ rt } { }
+    //
+    //     BinaryNode( Comparable && theElement, BinaryNode *lt, BinaryNode *rt )
+    //       : element{ std::move( theElement ) }, left{ lt }, right{ rt } { }
+    //
+    //       int getElement(){
+    //         return element;
+    //       }
+    // };
+
     BinarySearchTree( ) : root{ nullptr }
     {
     }
@@ -163,9 +189,9 @@ class BinarySearchTree
         return RankOfKey(x, root);
     }
 
-    // BinaryNode* KeyOfRank(int k){
-    //   return KeyOfRank(k, root);
-    // }
+    int KeyOfRank(int k){
+      return KeyOfRank(k, root);
+    }
 
     int getSize(){
       return size(root);
@@ -176,7 +202,7 @@ class BinarySearchTree
             return -1;
         }
         else
-            return(Treeheight(root, 0));
+            return(Treeheight(root, -1));
     }
 
     void inOrderTrav(vector<int> & vectorB){
@@ -185,6 +211,15 @@ class BinarySearchTree
       }
       else
         return inOrderTrav(root, vectorB);
+    }
+
+    bool deletee(int & x){
+      if(isEmpty()){
+        return false;
+      }
+      else{
+        return deletee(root, x);
+      }
     }
 
   private:
@@ -401,20 +436,21 @@ class BinarySearchTree
       }
     }
 
-    // BinaryNode* KeyOfRank(int k, BinaryNode* T){
-    //   if(T == NULL || (k < min(T) || k > max(T))){
-    //     return NULL;
-    //   }
-    //   if(size(T-left) == k-1){
-    //     return T;
-    //   }
-    //   if(size(T->left) >= k){
-    //     return KeyOfRank(k, T->left);
-    //   }
-    //   else{
-    //     return KeyOfRank(k - size(T->left) - 1, T-right);
-    //   }
-    // }
+    int KeyOfRank(int k, BinaryNode* T){
+
+      if(T == NULL || (k < (findMin(T)->element) || k > (findMax(T)->element) ) ){
+
+      }
+      if(size(T->left) == k-1){
+        return T->element;
+      }
+      if(size(T->left) >= k){
+        return KeyOfRank(k, T->left);
+      }
+      else{
+        return KeyOfRank(k - size(T->left) - 1, T->right);
+      }
+    }
 
     int size(BinaryNode* T){
       if(T == NULL){
@@ -443,49 +479,78 @@ class BinarySearchTree
       inOrderTrav(t->right, vectorB);
     }
 
-    // bool delete(T, x){
-    //   //Delete X from T and return true if successful
-    //   if(T == NULL){
-    //     return false;
-    //   }
-    //   if(x < T->element){
-    //     bool temp = Delete(T->left, x);
-    //     if(temp){
-    //       T->size = T->size - 1;
-    //       return true;
-    //     }
-    //     else
-    //       return false;
-    //   }
-    //   if(x > T->element){
-    //     bool temp = Delete(T->right, x);
-    //     if(temp){
-    //       T->size = T->size - 1;
-    //       return true;
-    //     }
-    //     else
-    //       return false;
-    //   }
-    //   if(x == T->element){
-    //     if(T->left == NULL && T->right == NULL){
-    //       T = NULL;
-    //       return true;
-    //     }
-    //     else if(T->left != nullptr && T->right == nullptr){
-    //       T = T->left;
-    //       return true;
-    //     }
-    //     else if(T->right != nullptr && T->left == nullptr){
-    //       T = T->right;
-    //       return true;
-    //     }
-    //     else if() //Has 2 children
-    //
-    //
-    //
-    //
-    //   }
-    // } // End Delete
+    bool deletee(BinaryNode*& T, int & x){
+      //Delete X from T and return true if successful
+      if(T == NULL){
+        return false;
+      }
+      if(x < T->element){
+        bool temp = deletee(T->left, x);
+        if(temp){
+          T->size = T->size - 1;
+          return true;
+        }
+        else
+          return false;
+      }
+      if(x > T->element){
+        bool temp = deletee(T->right, x);
+        if(temp){
+          T->size = T->size - 1;
+          return true;
+        }
+        else
+          return false;
+      }
+      if(x == T->element){
+
+        if(T->left == nullptr && T->right == nullptr){
+          T->size = T->size - 1;
+          T = NULL;
+          return true;
+        }
+        else if(T->left != nullptr && T->right == nullptr){
+          T = T->left;
+          T->size = T->size - 1;
+          return true;
+        }
+        else if(T->right != nullptr && T->left == nullptr){
+          T = T->right;
+          T->size = T->size - 1;
+          return true;
+        }
+        else{ //Has 2 children
+          int y = deleteMin(T->right);
+          T->element = y;
+          T->size = T->size - 1;
+          return true;
+        }
+      }
+      return false;
+    } // End Delete
+
+    int deleteMin(BinaryNode*& T){
+      if(T == nullptr){
+        return -1;
+      }
+
+      T->size = T->size - 1;
+
+      if(T->left == nullptr){
+        if(T->right == nullptr){
+          int temp = T->element;
+          T = NULL;
+          return temp;
+        }
+        else{
+          int temp = T->element;
+          T = T->right;
+          return temp;
+        }
+      }
+      return deleteMin(T->left);
+    } // End deleteMin
+
 
 
 };
